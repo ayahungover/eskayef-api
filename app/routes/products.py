@@ -5,7 +5,7 @@ Product API endpoints — thin layer that calls the service layer.
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.core.database import get_db
 from app.schemas.product import ProductCreate, ProductRead, ProductUpdate
 from app.services import product_service
 

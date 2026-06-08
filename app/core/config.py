@@ -38,12 +38,22 @@ class Settings(BaseSettings):
         description="Trust server certificate (common for local SQL Server)",
     )
 
+    # PostgreSQL — authentication database
+    pg_host: str = Field(default="localhost", description="PostgreSQL host")
+    pg_port: int = Field(default=5432, description="PostgreSQL port")
+    pg_name: str = Field(default="erp_auth", description="Auth database name")
+    pg_user: str = Field(default="postgres", description="PostgreSQL user")
+    pg_password: str = Field(default="", description="PostgreSQL password")
+
+    # JWT
+    jwt_secret_key: str = Field(default="changeme", description="JWT signing secret")
+    jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm")
+    jwt_expire_minutes: int = Field(default=60, description="Token expiry in minutes")
+
     api_title: str = "ERP API"
     api_version: str = "0.1.0"
     debug: bool = True
 
-    # Comma-separated browser origins allowed to call this API (needed for the React dev server).
-    # Example: http://127.0.0.1:5173,http://localhost:5173
     cors_origins: str = Field(
         default=(
             "http://127.0.0.1:5173,"
@@ -62,8 +72,6 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         """
         SQLAlchemy URL for SQL Server using the pyodbc driver.
-
-        Format: mssql+pyodbc://USER:PASS@SERVER/DB?driver=...&...
         """
         password = quote_plus(self.db_password)
         driver = quote_plus(self.db_driver)
@@ -77,6 +85,17 @@ class Settings(BaseSettings):
         return (
             f"mssql+pyodbc://{self.db_user}:{password}"
             f"@{self.db_server}/{self.db_name}?{query}"
+        )
+
+    @property
+    def auth_database_url(self) -> str:
+        """
+        SQLAlchemy URL for PostgreSQL authentication database.
+        """
+        password = quote_plus(self.pg_password)
+        return (
+            f"postgresql+psycopg2://{self.pg_user}:{password}"
+            f"@{self.pg_host}:{self.pg_port}/{self.pg_name}"
         )
 
 

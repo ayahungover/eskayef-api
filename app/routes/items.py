@@ -7,9 +7,11 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.core.database import get_db
 from app.schemas.item import ItemRead
 from app.services import item_service
+
+from app.auth.dependencies import require_role
 
 router = APIRouter(prefix="/items", tags=["items"])
 
@@ -17,7 +19,7 @@ router = APIRouter(prefix="/items", tags=["items"])
 @router.get("")
 def list_items(
     page: int = Query(1, ge=1, description="Page number (starts at 1)"),
-    size: int = Query(20, ge=1, le=200, description="Rows per page"),
+    size: int = Query(20, ge=1, le=10000, description="Rows per page"),
     itemkey: str | None = Query(
         None,
         description="Search item code (partial match) or one or more exact codes separated by commas",
@@ -29,6 +31,7 @@ def list_items(
     ),
     sort_order: str = Query("asc", description="asc or desc"),
     db: Session = Depends(get_db),
+    _: dict = Depends(require_role("admin", "items")),
 ):
     """
     Fetch item master rows from INMAST with pagination, search, and sorting.

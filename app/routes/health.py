@@ -5,7 +5,7 @@ Database health endpoints.
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from app.database import test_db_connection
+from app.core.database import test_db_connection
 
 router = APIRouter(tags=["database"])
 

@@ -4,7 +4,7 @@ Product business logic — all database queries for products go here.
 
 from sqlalchemy.orm import Session
 
-from app.models import Product
+from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate
 
 

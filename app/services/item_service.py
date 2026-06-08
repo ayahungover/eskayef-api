@@ -6,7 +6,7 @@ from math import ceil
 
 from sqlalchemy.orm import Session
 
-from app.models import Inmast
+from app.models.item import Inmast   # new
 
 # Allowed sort keys (API names) mapped to ORM columns.
 SORT_FIELDS: dict[str, object] = {
