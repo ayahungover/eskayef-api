@@ -2,14 +2,15 @@
 Purchase requisition endpoints.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.auth_database import get_auth_db
+from app.core.audit import log_access
 from app.services import requisition_service
-
 from app.auth.dependencies import require_role
 
 router = APIRouter(prefix="/requisitions", tags=["requisitions"])
@@ -18,7 +19,7 @@ router = APIRouter(prefix="/requisitions", tags=["requisitions"])
 @router.get("")
 def list_requisitions(
     page: int = Query(1, ge=1, description="Page number (starts at 1)"),
-    size: int = Query(20, ge=1, le=10000, description="Rows per page"),
+    size: int = Query(20, ge=1, le=200, description="Rows per page"),
     indent_no: str | None = Query(
         None,
         description="One or more indent numbers, comma-separated (e.g. 88371,88370)",
@@ -29,12 +30,23 @@ def list_requisitions(
     ),
     sort_order: str = Query("desc", description="asc or desc"),
     db: Session = Depends(get_db),
-    _: dict = Depends(require_role("admin", "indents")),
+    current_user: dict = Depends(require_role("admin", "indents")),
+    auth_db: Session = Depends(get_auth_db),
+    request: Request = None,
 ):
     """
     Fetch purchase requisition lines with optional indent number search,
     sorting, and pagination.
     """
+    log_access(
+        db=auth_db,
+        username=current_user["username"],
+        role=current_user["role"],
+        endpoint="/requisitions",
+        method="GET",
+        ip_address=request.client.host if request else "unknown",
+    )
+
     try:
         allowed_sort_fields = set(requisition_service.SORT_FIELDS.keys())
         if sort_by not in allowed_sort_fields:

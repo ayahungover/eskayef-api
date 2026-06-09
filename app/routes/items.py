@@ -2,15 +2,16 @@
 Item master (INMAST) endpoints — SQLAlchemy ORM.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.auth_database import get_auth_db
+from app.core.audit import log_access
 from app.schemas.item import ItemRead
 from app.services import item_service
-
 from app.auth.dependencies import require_role
 
 router = APIRouter(prefix="/items", tags=["items"])
@@ -31,11 +32,22 @@ def list_items(
     ),
     sort_order: str = Query("asc", description="asc or desc"),
     db: Session = Depends(get_db),
-    _: dict = Depends(require_role("admin", "items")),
+    current_user: dict = Depends(require_role("admin", "items")),
+    auth_db: Session = Depends(get_auth_db),
+    request: Request = None,
 ):
     """
     Fetch item master rows from INMAST with pagination, search, and sorting.
     """
+    log_access(
+        db=auth_db,
+        username=current_user["username"],
+        role=current_user["role"],
+        endpoint="/items",
+        method="GET",
+        ip_address=request.client.host if request else "unknown",
+    )
+
     try:
         allowed_sort_fields = set(item_service.SORT_FIELDS.keys())
         if sort_by not in allowed_sort_fields:
