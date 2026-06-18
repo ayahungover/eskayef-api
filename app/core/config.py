@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     pg_name: str = Field(default="erp_auth", description="Auth database name")
     pg_user: str = Field(default="postgres", description="PostgreSQL user")
     pg_password: str = Field(default="", description="PostgreSQL password")
+    
+    
+    # MariaDB — vendor bids database
+    mariadb_host: str = Field(default="localhost", description="MariaDB host")
+    mariadb_port: int = Field(default=3306, description="MariaDB port")
+    mariadb_name: str = Field(default="eskabidc_api", description="MariaDB database name")
+    mariadb_user: str = Field(default="", description="MariaDB user")
+    mariadb_password: str = Field(default="", description="MariaDB password")
 
     # JWT
     jwt_secret_key: str = Field(default="changeme", description="JWT signing secret")
@@ -97,6 +105,17 @@ class Settings(BaseSettings):
             f"postgresql+psycopg2://{self.pg_user}:{password}"
             f"@{self.pg_host}:{self.pg_port}/{self.pg_name}"
         )
+    
+    @property
+    def mariadb_url(self) -> str:
+        """
+        SQLAlchemy URL for MariaDB vendor bids database.
+        """
+        password = quote_plus(self.mariadb_password)
+        return (
+            f"mysql+pymysql://{self.mariadb_user}:{password}"
+            f"@{self.mariadb_host}:{self.mariadb_port}/{self.mariadb_name}"
+        )
 
 
 @lru_cache
@@ -106,3 +125,12 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+
+
+
+'''import os
+print(f"DEBUG cwd: {os.getcwd()}")
+print(f"DEBUG env file exists: {os.path.exists('.env')}")
+print(f"DEBUG raw env value: {os.getenv('JWT_EXPIRE_MINUTES')}")
+print(f"DEBUG parsed value: {settings.jwt_expire_minutes}")'''
