@@ -2,6 +2,8 @@
 Vendor bid endpoints — MariaDB.
 """
 
+from os import stat
+
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -20,7 +22,11 @@ router = APIRouter(prefix="/vendor-bids", tags=["vendor bids"])
 def list_vendor_bids(
     page: int = Query(1, ge=1, description="Page number (starts at 1)"),
     size: int = Query(20, ge=1, le=200, description="Rows per page"),
-    tender_no: str | None = Query(None, description="Search tender number (partial match)"),
+    tender_no: str = Query(..., description="Search tender number (required)"),
+    price_filter: str = Query(
+    "all",
+    description="Filter by unit price: 'with' (has price), 'without' (no price), 'all' (both)",
+    ),
     sort_by: str = Query(
         "login",
         description="Sort field (email, tender_no, opening_date, closing_date, login, item_name, unit_price, qty)",
@@ -66,6 +72,14 @@ def list_vendor_bids(
                     "message": "sort_order must be 'asc' or 'desc'",
                 },
             )
+        if price_filter not in {"with", "without", "all"}:
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "success": False,
+                    "message": "price_filter must be 'with', 'without', or 'all'",
+                },
+            )
 
         
 
@@ -76,6 +90,7 @@ def list_vendor_bids(
             tender_no=tender_no,
             sort_by=sort_by,
             sort_order=sort_order,
+            price_filter=price_filter,
             
         )
 

@@ -46,11 +46,11 @@ def get_vendor_bids_page(
     if tender_no:
         query = query.filter(VendorBidItem.tender_no.like(f"%{tender_no}%"))
 
-    '''if price_filter == "with":
+    if price_filter == "with":
         query = query.filter(VendorBidItem.unit_price != None)
     elif price_filter == "without":
         query = query.filter(VendorBidItem.unit_price == None)
-    # "all" — no filter added'''
+    # "all" — no filter added
 
     total_records = query.count()
     total_pages = max(1, ceil(total_records / size)) if total_records else 0
