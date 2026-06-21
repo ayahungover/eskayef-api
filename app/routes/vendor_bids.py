@@ -80,7 +80,14 @@ def list_vendor_bids(
                     "message": "price_filter must be 'with', 'without', or 'all'",
                 },
             )
-
+        if tender_no and (not tender_no.isdigit() or len(tender_no) != 5):
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "success": False,
+                    "message": "tender_no must be exactly 5 digits (e.g. 12003)",
+                },
+            )
         
 
         rows, total_records, total_pages = vendor_bid_service.get_vendor_bids_page(

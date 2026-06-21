@@ -44,7 +44,9 @@ def get_vendor_bids_page(
     query = db.query(VendorBidItem)
 
     if tender_no:
-        query = query.filter(VendorBidItem.tender_no.like(f"%{tender_no}%"))
+        '''query = query.filter(VendorBidItem.tender_no.like(f"%{tender_no}%"))'''
+        query = query.filter(VendorBidItem.tender_no.like(f"%{tender_no}"))
+
 
     if price_filter == "with":
         query = query.filter(VendorBidItem.unit_price != None)
