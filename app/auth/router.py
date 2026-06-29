@@ -13,7 +13,7 @@ from app.auth.schemas import TokenResponse
 from app.core.auth_database import get_auth_db
 from app.models.user import User
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
 @router.post("/login", response_model=TokenResponse)

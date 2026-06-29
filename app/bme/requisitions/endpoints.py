@@ -1,5 +1,5 @@
 """
-Item master (INMAST) endpoints — SQLAlchemy ORM.
+Purchase requisition endpoints.
 """
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -10,46 +10,46 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.auth_database import get_auth_db
 from app.core.audit import log_access
-from app.schemas.item import ItemRead
-from app.services import item_service
+from app.bme.requisitions import service as requisition_service
+from app.bme.requisitions.repository import SORT_FIELDS
 from app.auth.dependencies import require_role
 
-router = APIRouter(prefix="/items", tags=["items"])
+router = APIRouter(prefix="/requisitions", tags=["Indents"])
 
 
 @router.get("")
-def list_items(
+def list_requisitions(
     page: int = Query(1, ge=1, description="Page number (starts at 1)"),
-    size: int = Query(20, ge=1, le=10000, description="Rows per page"),
-    itemkey: str | None = Query(
+    size: int = Query(20, ge=1, le=200, description="Rows per page"),
+    indent_no: str | None = Query(
         None,
-        description="Search item code (partial match) or one or more exact codes separated by commas",
+        description="One or more indent numbers, comma-separated (e.g. 88371,88370)",
     ),
-    desc1: str | None = Query(None, description="Search description (partial match)"),
     sort_by: str = Query(
-        "itemkey",
-        description="Sort field (itemkey, desc1, purchase_uom_code)",
+        "IndentDate",
+        description="Sort field (IndentDate, RequestedBy, Price, Qtyord)",
     ),
-    sort_order: str = Query("asc", description="asc or desc"),
+    sort_order: str = Query("desc", description="asc or desc"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role("admin", "items")),
+    current_user: dict = Depends(require_role("admin", "indents")),
     auth_db: Session = Depends(get_auth_db),
     request: Request = None,
 ):
     """
-    Fetch item master rows from INMAST with pagination, search, and sorting.
+    Fetch purchase requisition lines with optional indent number search,
+    sorting, and pagination.
     """
     log_access(
         db=auth_db,
         username=current_user["username"],
         role=current_user["role"],
-        endpoint="/items",
+        endpoint="/requisitions",
         method="GET",
         ip_address=request.client.host if request else "unknown",
     )
 
     try:
-        allowed_sort_fields = set(item_service.SORT_FIELDS.keys())
+        allowed_sort_fields = set(SORT_FIELDS.keys())
         if sort_by not in allowed_sort_fields:
             return JSONResponse(
                 status_code=422,
@@ -71,32 +71,28 @@ def list_items(
                 },
             )
 
-        rows, total_records, total_pages = item_service.get_items_page(
+        rows, total_records, total_pages = requisition_service.get_requisitions_page(
             db,
             page=page,
             size=size,
-            itemkey=itemkey,
-            desc1=desc1,
+            indent_no=indent_no,
             sort_by=sort_by,
             sort_order=sort_order,
         )
-
-        data = [ItemRead.model_validate(row).model_dump() for row in rows]
-
         return {
             "success": True,
             "page": page,
             "size": size,
             "total_records": total_records,
             "total_pages": total_pages,
-            "data": data,
+            "data": rows,
         }
     except SQLAlchemyError as exc:
         return JSONResponse(
             status_code=503,
             content={
                 "success": False,
-                "message": f"Could not load items: {exc}",
+                "message": f"Could not load requisitions: {exc}",
                 "page": page,
                 "size": size,
                 "total_records": 0,

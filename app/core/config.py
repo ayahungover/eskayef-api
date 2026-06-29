@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm")
     jwt_expire_minutes: int = Field(default=60, description="Token expiry in minutes")
 
-    api_title: str = "ERP API"
+    api_title: str = "Eskayef API"
     api_version: str = "0.1.0"
     debug: bool = True
 
