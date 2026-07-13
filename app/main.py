@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.routes import health
 from app.commercial.local.supplier.etender import endpoints as etender_endpoints
+from app.commercial.import_.lc_item_register import endpoints as lc_item_endpoints
 from app.bme.warehouse import endpoints as warehouse_endpoints
 from app.bme.requisitions import endpoints as requisitions_endpoints
 
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(warehouse_endpoints.router)
 app.include_router(requisitions_endpoints.router)
 app.include_router(etender_endpoints.router)
+app.include_router(lc_item_endpoints.router)
 app.include_router(auth_router)  
 app.include_router(health.router)
 

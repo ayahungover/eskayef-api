@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     mariadb_name: str = Field(default="eskabidc_api", description="MariaDB database name")
     mariadb_user: str = Field(default="", description="MariaDB user")
     mariadb_password: str = Field(default="", description="MariaDB password")
+    
+    commercial_db_server: str = Field(default="localhost")
+    commercial_db_name: str = Field(default="master")
+    commercial_db_user: str = Field(default="")
+    commercial_db_password: str = Field(default="")
+    commercial_db_driver: str = Field(default="ODBC Driver 18 for SQL Server")
+    commercial_db_trust_server_certificate: bool = Field(default=True)    
 
     # JWT
     jwt_secret_key: str = Field(default="changeme", description="JWT signing secret")
@@ -116,7 +123,18 @@ class Settings(BaseSettings):
             f"mysql+pymysql://{self.mariadb_user}:{password}"
             f"@{self.mariadb_host}:{self.mariadb_port}/{self.mariadb_name}"
         )
-
+    @property
+    def commercial_database_url(self) -> str:
+        password = quote_plus(self.commercial_db_password)
+        driver = quote_plus(self.commercial_db_driver)
+        query_parts = [f"driver={driver}"]
+        if self.commercial_db_trust_server_certificate:
+            query_parts.append("TrustServerCertificate=yes")
+        query = "&".join(query_parts)
+        return (
+            f"mssql+pyodbc://{self.commercial_db_user}:{password}"
+            f"@{self.commercial_db_server}/{self.commercial_db_name}?{query}"
+        )
 
 @lru_cache
 def get_settings() -> Settings:
@@ -128,7 +146,7 @@ settings = get_settings()
 
 
 
-
+print(f"DEBUG db_server={settings.db_server} db_name={settings.db_name}")
 '''import os
 print(f"DEBUG cwd: {os.getcwd()}")
 print(f"DEBUG env file exists: {os.path.exists('.env')}")

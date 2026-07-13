@@ -10,14 +10,14 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 BASE_FROM_SQL = """
-FROM PURINDENTLIN PURINDENTLIN
+FROM BME.SANDBOX.dbo.PURINDENTLIN PURINDENTLIN
 LEFT OUTER JOIN (
-    PURINDENTHDR PURINDENTHDR
-    LEFT OUTER JOIN Cust_IndentcustomAddInfo Cust_IndentcustomAddInfo
+    BME.SANDBOX.dbo.PURINDENTHDR PURINDENTHDR
+    LEFT OUTER JOIN BME.SANDBOX.dbo.Cust_IndentcustomAddInfo Cust_IndentcustomAddInfo
         ON PURINDENTHDR.IndentNo = Cust_IndentcustomAddInfo.IndentNo
 )
     ON PURINDENTLIN.IndentNo = PURINDENTHDR.IndentNo
-LEFT OUTER JOIN INMAST INMAST
+LEFT OUTER JOIN BME.SANDBOX.dbo.INMAST INMAST
     ON PURINDENTLIN.Itemkey = INMAST.Itemkey
 """
 
