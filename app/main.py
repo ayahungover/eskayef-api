@@ -15,6 +15,7 @@ from app.bme.requisitions import endpoints as requisitions_endpoints
 from app.bme.purchase_order import endpoints as po_endpoints
 
 from app.auth.router import router as auth_router  
+from app.auth.admin_router import router as admin_router
 
 
 app = FastAPI(
@@ -38,6 +39,7 @@ app.include_router(requisitions_endpoints.router)
 app.include_router(etender_endpoints.router)
 app.include_router(lc_item_endpoints.router)
 app.include_router(po_endpoints.router)
+app.include_router(admin_router)
 app.include_router(auth_router)  
 app.include_router(health.router)
 

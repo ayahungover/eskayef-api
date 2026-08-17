@@ -14,7 +14,7 @@ from app.core.auth_database import get_auth_db
 from app.core.audit import log_access
 from app.commercial.local.supplier.etender.schemas import VendorBidItemRead
 from app.commercial.local.supplier.etender import service as vendor_bid_service
-from app.auth.dependencies import require_role
+from app.auth.dependencies import require_permission
 
 router = APIRouter(prefix="/vendor-bids", tags=["Vendor Bids"])
 
@@ -33,7 +33,7 @@ def list_vendor_bids(
     ),
     sort_order: str = Query("asc", description="asc or desc"),
     db: Session = Depends(get_maria_db),
-    current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_permission("/vendor-bids", "GET")),
     auth_db: Session = Depends(get_auth_db),
     request: Request = None,
 ):
@@ -44,12 +44,10 @@ def list_vendor_bids(
     log_access(
         db=auth_db,
         username=current_user["username"],
-        role=current_user["role"],
-        endpoint="/vendor-bids",
+        endpoint="/commercial/local/supplier/etender",
         method="GET",
         ip_address=request.client.host if request else "unknown",
     )
-
     try:
         allowed_sort_fields = set(vendor_bid_service.SORT_FIELDS.keys())
         if sort_by not in allowed_sort_fields:

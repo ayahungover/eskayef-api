@@ -11,7 +11,7 @@ from app.core.database import get_db
 from app.core.auth_database import get_auth_db
 from app.core.audit import log_access
 from app.bme.purchase_order import service
-from app.auth.dependencies import require_role
+from app.auth.dependencies import require_permission
 
 router = APIRouter(prefix="/bme/purchase-order", tags=["purchase order"])
 
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/bme/purchase-order", tags=["purchase order"])
 def get_po_header(
     pono: str = Query(..., description="Purchase order number (required)"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_permission("/bme/purchase-order", "GET")),
     auth_db: Session = Depends(get_auth_db),
     request: Request = None,
 ):
@@ -30,7 +30,6 @@ def get_po_header(
     log_access(
         db=auth_db,
         username=current_user["username"],
-        role=current_user["role"],
         endpoint="/bme/purchase-order",
         method="GET",
         ip_address=request.client.host if request else "unknown",

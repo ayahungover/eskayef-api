@@ -13,7 +13,7 @@ from app.core.commercial_database import get_commercial_db
 from app.core.auth_database import get_auth_db
 from app.core.audit import log_access
 from app.commercial.import_.lc_item_register import service
-from app.auth.dependencies import require_role
+from app.auth.dependencies import require_permission
 
 router = APIRouter(prefix="/commercial/lc-items", tags=["LC Item Register"])
 
@@ -40,7 +40,7 @@ def list_lc_items(
     ),
     sort_order: str = Query("desc", description="asc or desc"),
     db: Session = Depends(get_commercial_db),
-    current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_permission("/commercial/lc-items", "GET")),
     auth_db: Session = Depends(get_auth_db),
     request: Request = None,
 ):
@@ -53,7 +53,6 @@ def list_lc_items(
     log_access(
         db=auth_db,
         username=current_user["username"],
-        role=current_user["role"],
         endpoint="/commercial/lc-items",
         method="GET",
         ip_address=request.client.host if request else "unknown",

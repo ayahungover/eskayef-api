@@ -12,7 +12,7 @@ from app.core.auth_database import get_auth_db
 from app.core.audit import log_access
 from app.bme.requisitions import service as requisition_service
 from app.bme.requisitions.repository import SORT_FIELDS
-from app.auth.dependencies import require_role
+from app.auth.dependencies import require_permission
 
 router = APIRouter(prefix="/requisitions", tags=["Indents"])
 
@@ -31,7 +31,7 @@ def list_requisitions(
     ),
     sort_order: str = Query("desc", description="asc or desc"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role("admin", "indents")),
+    current_user: dict = Depends(require_permission("/requisitions", "GET")),
     auth_db: Session = Depends(get_auth_db),
     request: Request = None,
 ):
@@ -42,8 +42,7 @@ def list_requisitions(
     log_access(
         db=auth_db,
         username=current_user["username"],
-        role=current_user["role"],
-        endpoint="/requisitions",
+        endpoint="/bme/requisitions",
         method="GET",
         ip_address=request.client.host if request else "unknown",
     )

@@ -12,7 +12,7 @@ from app.core.auth_database import get_auth_db
 from app.core.audit import log_access
 from app.bme.warehouse.schemas import ItemRead
 from app.bme.warehouse import service as item_service
-from app.auth.dependencies import require_role
+from app.auth.dependencies import require_permission
 
 router = APIRouter(prefix="/items", tags=["Items"])
 
@@ -32,7 +32,7 @@ def list_items(
     ),
     sort_order: str = Query("asc", description="asc or desc"),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role("admin", "items")),
+    current_user: dict = Depends(require_permission("/warehouse/items", "GET")),
     auth_db: Session = Depends(get_auth_db),
     request: Request = None,
 ):
@@ -42,8 +42,7 @@ def list_items(
     log_access(
         db=auth_db,
         username=current_user["username"],
-        role=current_user["role"],
-        endpoint="/items",
+        endpoint="/bme/items",
         method="GET",
         ip_address=request.client.host if request else "unknown",
     )
