@@ -3,7 +3,7 @@ Admin endpoints — user, group and permission management.
 Only accessible by superadmin.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.auth.admin_schemas import (
@@ -296,21 +296,32 @@ def delete_permission(
 
 
 # ─── AVAILABLE ENDPOINTS ───────────────────────────────────
-
+    
 @router.get("/endpoints")
 def list_available_endpoints(
+    request: Request,
     _: dict = Depends(require_superadmin),
 ):
     """
-    Returns all available API endpoints that can be assigned as permissions.
+    Returns all available API routes dynamically from the FastAPI app.
+    Excludes auth, admin, health routes automatically.
     """
-    return {
-        "success": True,
-        "data": [
-            {"endpoint": "/warehouse/items", "method": "GET", "description": "Item master data"},
-            {"endpoint": "/requisitions", "method": "GET", "description": "Purchase requisitions"},
-            {"endpoint": "/bme/purchase-order", "method": "GET", "description": "Purchase order header"},
-            {"endpoint": "/commercial/lc-items", "method": "GET", "description": "LC item register"},
-            {"endpoint": "/vendor-bids", "method": "GET", "description": "Vendor bid items"},
-        ]
-    }
+    excluded_prefixes = ["/admin", "/auth", "/health", "/test-db", "/docs", "/openapi", "/redoc"]
+    
+    routes = []
+    for route in request.app.routes:
+        if not hasattr(route, "methods"):
+            continue
+        path = route.path
+        if any(path.startswith(prefix) for prefix in excluded_prefixes):
+            continue
+        for method in route.methods:
+            if method in ("HEAD", "OPTIONS"):
+                continue
+            routes.append({
+                "endpoint": path,
+                "method": method,
+                "description": route.name.replace("_", " ").title(),
+            })
+
+    return {"success": True, "data": routes}

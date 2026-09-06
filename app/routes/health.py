@@ -29,3 +29,8 @@ def test_db():
                 "message": f"Database connection failed: {exc}",
             },
         )
+
+
+@router.get("/test-endpoint")
+def test_endpoint():
+    return {"message": "this is a test endpoint"}
