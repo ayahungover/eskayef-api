@@ -9,6 +9,7 @@ export default function Users() {
     const [showCreate, setShowCreate] = useState(false)
     const [editUser, setEditUser] = useState(null)
     const [deleteTarget, setDeleteTarget] = useState(null)
+    const [deleteError, setDeleteError] = useState('')
     const [form, setForm] = useState({ username: '', email: '', password: '', is_active: true })
     const [error, setError] = useState('')
 
@@ -62,9 +63,14 @@ export default function Users() {
     }
 
     async function handleDelete() {
-        await deleteUser(deleteTarget.id)
-        setDeleteTarget(null)
-        load()
+        setDeleteError('')
+        try {
+            await deleteUser(deleteTarget.id)
+            setDeleteTarget(null)
+            load()
+        } catch (err) {
+            setDeleteError(err.response?.data?.detail || 'Failed to delete user')
+        }
     }
 
     if (loading) return <p className="text-slate-500 text-sm">Loading...</p>
@@ -115,7 +121,7 @@ export default function Users() {
                                 </td>
                                 <td className="px-4 py-3 text-right space-x-3">
                                     <button onClick={() => openEdit(user)} className="text-slate-400 hover:text-blue-500 text-sm">Edit</button>
-                                    <button onClick={() => setDeleteTarget(user)} className="text-slate-400 hover:text-red-500 text-sm">Delete</button>
+                                    <button onClick={() => { setDeleteError(''); setDeleteTarget(user) }} className="text-slate-400 hover:text-red-500 text-sm">Delete</button>
                                 </td>
                             </tr>
                         ))}
@@ -178,6 +184,7 @@ export default function Users() {
             {deleteTarget && (
                 <ConfirmDialog
                     message={`Delete user "${deleteTarget.username}"? This cannot be undone.`}
+                    error={deleteError}
                     onConfirm={handleDelete}
                     onCancel={() => setDeleteTarget(null)}
                 />

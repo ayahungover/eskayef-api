@@ -27,6 +27,22 @@ SORT_FIELDS: dict[str, str] = {
     "supplier":      "CompanyName",
 }
 
+RESPONSE_FIELDS = (
+    "catcode", "unit", "lc_no", "lc_open_date", "bank", "prop_date",
+    "lca_no", "lca_date", "item_seq", "itemid", "shipment_by", "tradename",
+    "uom", "qty", "unit_price", "currency", "item_tot_qty_price",
+    "item_shp_n_handling", "item_total_with_shp", "bdt_conv_rate", "bdt_item_amnt",
+    "lc_shipment_expiry", "lc_last_negotiation", "supplier", "supplier_country",
+    "country_origin", "eta_port", "hs_code1", "indentor_id", "indentor",
+    "indent_pi_no", "indent_pi_date", "user_id",
+)
+
+
+def _normalize_row(row: dict) -> dict:
+    values = {str(key).upper(): value for key, value in row.items()}
+    values["SUPPLIER"] = values.get("COMPANYNAME", values.get("SUPPLIER"))
+    return {field: _serialize_value(values.get(field.upper())) for field in RESPONSE_FIELDS}
+
 
 def get_lc_items_page(
     db: Session,
@@ -60,7 +76,7 @@ def get_lc_items_page(
     })
 
     rows = result.mappings().all()
-    data = [{key: _serialize_value(val) for key, val in row.items()} for row in rows]
+    data = [_normalize_row(dict(row)) for row in rows]
 
     # sort in Python since stored procedure doesn't support dynamic ORDER BY
     reverse = order == "DESC"
