@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 const links = [
     { to: '/users', label: 'Users' },
     { to: '/groups', label: 'Groups' },
+    { to: '/audit-logs', label: 'Audit logs' },
 ]
 
 export default function Sidebar() {

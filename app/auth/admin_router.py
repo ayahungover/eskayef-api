@@ -3,7 +3,9 @@ Admin endpoints — user, group and permission management.
 Only accessible by superadmin.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
+from math import ceil
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from app.auth.admin_schemas import (
@@ -16,7 +18,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.hashing import hash_password
 from app.core.auth_database import get_auth_db
 from app.core.config import settings
-from app.models.user import User, Group, UserGroup, Permission
+from app.models.user import User, Group, UserGroup, Permission, AuditLog
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -51,6 +53,35 @@ def list_users(
         )
         result.append(user_data)
     return result
+
+
+@router.get("/audit-logs")
+def list_audit_logs(
+    page: int = Query(1, ge=1),
+    size: int = Query(50, ge=1, le=200),
+    username: str | None = Query(default=None),
+    method: str | None = Query(default=None),
+    db: Session = Depends(get_auth_db),
+    _: dict = Depends(require_superadmin),
+):
+    query = db.query(AuditLog)
+    if username:
+        query = query.filter(AuditLog.username.ilike(f"%{username}%"))
+    if method:
+        query = query.filter(AuditLog.method == method.upper())
+
+    total_records = query.count()
+    rows = query.order_by(desc(AuditLog.timestamp), desc(AuditLog.id)).offset(
+        (page - 1) * size
+    ).limit(size).all()
+
+    return {
+        "data": rows,
+        "page": page,
+        "size": size,
+        "total_records": total_records,
+        "total_pages": ceil(total_records / size) if total_records else 0,
+    }
 
 
 @router.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)

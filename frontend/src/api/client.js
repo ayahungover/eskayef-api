@@ -35,6 +35,7 @@ export const login = (username, password) => {
 
 // Users
 export const getUsers = () => client.get('/admin/users')
+export const getAuditLogs = (params) => client.get('/admin/audit-logs', { params })
 export const createUser = (data) => client.post('/admin/users', data)
 export const updateUser = (id, data) => client.patch(`/admin/users/${id}`, data)
 export const deleteUser = (id) => client.delete(`/admin/users/${id}`)

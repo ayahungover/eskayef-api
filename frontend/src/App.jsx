@@ -5,6 +5,7 @@ import Groups from './pages/Groups'
 import GroupDetail from './pages/GroupDetail'
 import GroupUsers from './pages/GroupUsers'
 import GroupPermissions from './pages/GroupPermissions'
+import AuditLogs from './pages/AuditLogs'
 import Sidebar from './components/Sidebar'
 
 function PrivateLayout({ children }) {
@@ -30,6 +31,7 @@ export default function App() {
                 <Route path="/groups/:id" element={<PrivateLayout><GroupDetail /></PrivateLayout>} />
                 <Route path="/groups/:id/users" element={<PrivateLayout><GroupUsers /></PrivateLayout>} />
                 <Route path="/groups/:id/permissions" element={<PrivateLayout><GroupPermissions /></PrivateLayout>} />
+                <Route path="/audit-logs" element={<PrivateLayout><AuditLogs /></PrivateLayout>} />
                 <Route path="*" element={<Navigate to="/users" replace />} />
             </Routes>
         </BrowserRouter>
